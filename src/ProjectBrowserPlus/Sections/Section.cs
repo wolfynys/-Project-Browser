@@ -116,15 +116,16 @@ namespace ProjectBrowserPlus.Sections
 
         public static int CountRecursive(BrowserItem node)
         {
-            if (node.Children.Count == 0) { node.Count = node.IsFolder ? 0 : 1; return node.IsFolder ? 0 : 1; }
+            if (node.Children.Count == 0) { node.Count = 0; return node.IsFolder ? 0 : 1; }
             int n = 0;
             foreach (var c in node.Children)
             {
                 var sub = CountRecursive(c);
                 n += c.IsFolder ? sub : 1;
             }
-            node.Count = n;
-            return n;
+            // only folders show a count badge; leaves with children (sheets, families) use their own badges
+            node.Count = node.IsFolder ? n : 0;
+            return node.IsFolder ? n : 1;
         }
     }
 }

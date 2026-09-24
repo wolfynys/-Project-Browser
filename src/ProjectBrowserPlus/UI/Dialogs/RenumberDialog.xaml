@@ -22,7 +22,11 @@
     </StackPanel>
     <DataGrid x:Name="Grid" Grid.Row="2" Style="{StaticResource Grid}" IsReadOnly="False" CanUserSortColumns="False">
       <DataGrid.Columns>
-        <DataGridCheckBoxColumn Binding="{Binding On, UpdateSourceTrigger=PropertyChanged}" Width="30"/>
+        <DataGridTemplateColumn Width="30">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate><CheckBox IsChecked="{Binding On, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"/></DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="{ui:Tr rn.oldNumber}" Binding="{Binding Old}" IsReadOnly="True" Width="110"/>
         <DataGridTextColumn Header="{ui:Tr rn.newNumber}" Binding="{Binding New}" IsReadOnly="True" Width="110"/>
         <DataGridTextColumn Header="{ui:Tr rn.sheetName}" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>

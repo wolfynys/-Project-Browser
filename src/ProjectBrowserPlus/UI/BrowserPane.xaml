@@ -119,9 +119,9 @@
         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <ToggleButton Style="{StaticResource IconToggle}" IsChecked="{Binding IsSelected, Mode=OneWay}" ToolTip="{Binding Title}" Click="Tab_Click" Margin="1,0" Width="30">
+            <Button Style="{StaticResource TabButton}" ToolTip="{Binding Title}" Click="Tab_Click" Margin="1,0" Width="30">
               <ui:Icon Kind="{Binding Icon}" Size="16"/>
-            </ToggleButton>
+            </Button>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
@@ -136,7 +136,8 @@
         <TextBlock Text="{Binding SearchHint}" Foreground="{StaticResource TextBadge}" Margin="26,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding HasSearch, Converter={StaticResource BoolToVisInv}}"/>
         <Button Style="{StaticResource IconButton}" Width="20" Height="20" Padding="2" HorizontalAlignment="Right" Margin="0,0,3,0" Command="{Binding ClearSearchCommand}" Visibility="{Binding HasSearch, Converter={StaticResource BoolToVis}}"><ui:Icon Kind="x" Size="12"/></Button>
       </Grid>
-      <ToggleButton x:Name="FilterButton" Grid.Column="1" Style="{StaticResource IconToggle}" Margin="4,0,0,0" ToolTip="{ui:Tr tip.filters}" Visibility="{Binding HasFilters, Converter={StaticResource BoolToVis}}" Width="30" Height="26">
+      <ToggleButton x:Name="FilterButton" Grid.Column="1" Style="{StaticResource IconToggle}" Margin="4,0,0,0"
+                    IsHitTestVisible="{Binding IsOpen, ElementName=FilterPopup, Converter={StaticResource InverseBool}}" ToolTip="{ui:Tr tip.filters}" Visibility="{Binding HasFilters, Converter={StaticResource BoolToVis}}" Width="30" Height="26">
         <Grid>
           <ui:Icon Kind="funnel" Size="15"/>
           <Border Background="{StaticResource Accent}" CornerRadius="6" MinWidth="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,-8,0">
@@ -149,7 +150,7 @@
           </Border>
         </Grid>
       </ToggleButton>
-      <Popup PlacementTarget="{Binding ElementName=FilterButton}" Placement="Bottom" IsOpen="{Binding IsChecked, ElementName=FilterButton, Mode=TwoWay}" StaysOpen="False" AllowsTransparency="True">
+      <Popup x:Name="FilterPopup" PlacementTarget="{Binding ElementName=FilterButton}" Placement="Bottom" IsOpen="{Binding IsChecked, ElementName=FilterButton, Mode=TwoWay}" StaysOpen="False" AllowsTransparency="True">
         <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,2,0,0">
           <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.2"/></Border.Effect>
           <ItemsControl ItemsSource="{Binding Filters}">

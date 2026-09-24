@@ -47,9 +47,9 @@ namespace ProjectBrowserPlus.Core
         public static bool TryRegister(UIApplication app)
         {
             if (_registered) return true;
+            try { if (DockablePane.PaneIsRegistered(PaneId)) { _registered = true; return true; } } catch { }
             try
             {
-                if (DockablePane.PaneIsRegistered(PaneId)) { _registered = true; return true; }
                 app.RegisterDockablePane(PaneId, PaneTitle, new Provider());
                 _registered = true;
                 return true;
@@ -58,7 +58,8 @@ namespace ProjectBrowserPlus.Core
         }
 
         /// <summary>Shows the dockable pane; falls back to a floating window when the pane cannot be registered.</summary>
-        public static void Show(UIApplication app)
+        /// <returns>true when the real dockable pane is used, false for the floating fallback.</returns>
+        public static bool Show(UIApplication app)
         {
             RevitTask.Instance.EnsureCreated();
             RevitTask.UIApp = app;
@@ -69,12 +70,13 @@ namespace ProjectBrowserPlus.Core
                 {
                     var pane = app.GetDockablePane(PaneId);
                     if (pane.IsShown()) pane.Hide(); else pane.Show();
-                    Pane.ViewModel.RequestRefresh(true);
-                    return;
+                    if (_pane != null) _pane.ViewModel.RequestRefresh(true);
+                    return true;
                 }
                 catch (Exception ex) { Log.Error("GetDockablePane failed, using floating window", ex); }
             }
             ShowFloating(app);
+            return false;
         }
 
         public static void ShowFloating(UIApplication app)

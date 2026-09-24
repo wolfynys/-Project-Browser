@@ -38,7 +38,6 @@ namespace ProjectBrowserPlus.UI
         private void Tab_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as FrameworkElement)?.DataContext is TabVm t) ViewModel.SelectedTab = t;
-            if (sender is ToggleButton tb) tb.IsChecked = true;
         }
 
         private void Sort_Click(object sender, RoutedEventArgs e)
@@ -121,6 +120,8 @@ namespace ProjectBrowserPlus.UI
 
         private void List_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (e.ChangedButton != MouseButton.Left) return;
+            if (e.OriginalSource is DependencyObject src && FindAncestor<ButtonBase>(src) != null) return;
             var it = ItemAt(e.OriginalSource as DependencyObject);
             if (it == null) return;
             if (_editing != null) return;
@@ -233,11 +234,11 @@ namespace ProjectBrowserPlus.UI
         private void Editor_Loaded(object sender, RoutedEventArgs e)
         {
             var tb = (TextBox)sender;
-            if (tb.Visibility != System.Windows.Visibility.Visible) return;
-            if (tb.DataContext is BrowserItem it) tb.Text = it.Kind == ItemKind.Sheet ? it.EffectiveNumber + " - " + it.EffectiveName : it.EffectiveName;
-            tb.Dispatcher.BeginInvoke(new Action(() => { tb.Focus(); tb.SelectAll(); }), System.Windows.Threading.DispatcherPriority.Input);
             tb.IsVisibleChanged -= Editor_VisibleChanged;
             tb.IsVisibleChanged += Editor_VisibleChanged;
+            if (!tb.IsVisible) return;
+            if (tb.DataContext is BrowserItem it) tb.Text = it.Kind == ItemKind.Sheet ? it.EffectiveNumber + " - " + it.EffectiveName : it.EffectiveName;
+            tb.Dispatcher.BeginInvoke(new Action(() => { tb.Focus(); Keyboard.Focus(tb); tb.SelectAll(); }), System.Windows.Threading.DispatcherPriority.Input);
         }
 
         private void Editor_VisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -246,7 +247,7 @@ namespace ProjectBrowserPlus.UI
             if ((bool)e.NewValue)
             {
                 if (tb.DataContext is BrowserItem it) tb.Text = it.Kind == ItemKind.Sheet ? it.EffectiveNumber + " - " + it.EffectiveName : it.EffectiveName;
-                tb.Dispatcher.BeginInvoke(new Action(() => { tb.Focus(); tb.SelectAll(); }), System.Windows.Threading.DispatcherPriority.Input);
+                tb.Dispatcher.BeginInvoke(new Action(() => { tb.Focus(); Keyboard.Focus(tb); tb.SelectAll(); }), System.Windows.Threading.DispatcherPriority.Input);
             }
         }
 
@@ -406,14 +407,18 @@ namespace ProjectBrowserPlus.UI
         {
             items = items.Where(i => i.IsElement).ToList();
             if (items.Count == 0) return;
-            if (Settings.Current.ConfirmDelete)
-            {
-                var names = string.Join("\n", items.Take(12).Select(i => "• " + i.DisplayText)) + (items.Count > 12 ? "\n…" : "");
-                var td = new TaskDialog("Project Browser+") { MainInstruction = string.Format(L.T("confirm.delete"), items.Count), MainContent = names, CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No, DefaultButton = TaskDialogResult.No };
-                if (td.Show() != TaskDialogResult.Yes) return;
-            }
             var ids = items.Select(i => i.Id).ToList();
-            ViewModel.Run(app => ViewModel.Report(RevitActions.Delete(app, ids)));
+            var names = string.Join("\n", items.Take(12).Select(i => "• " + i.DisplayText)) + (items.Count > 12 ? "\n…" : "");
+            var count = items.Count;
+            ViewModel.Run(app =>
+            {
+                if (Settings.Current.ConfirmDelete)
+                {
+                    var td = new TaskDialog("Project Browser+") { MainInstruction = string.Format(L.T("confirm.delete"), count), MainContent = names, CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No, DefaultButton = TaskDialogResult.No };
+                    if (td.Show() != TaskDialogResult.Yes) return;
+                }
+                ViewModel.Report(RevitActions.Delete(app, ids));
+            });
         }
 
         private void BatchRename(List<BrowserItem> items)

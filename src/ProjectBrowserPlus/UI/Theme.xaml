@@ -24,6 +24,7 @@
   <SolidColorBrush x:Key="Draft" Color="#7C3AED"/>
   <SolidColorBrush x:Key="DraftSoft" Color="#F1EBFD"/>
 
+  <ui:InverseBool x:Key="InverseBool"/>
   <ui:BoolToVis x:Key="BoolToVis"/>
   <ui:BoolToVis x:Key="BoolToVisInv" Invert="True"/>
   <ui:NullToVis x:Key="NullToVis"/>
@@ -100,6 +101,38 @@
               <Setter TargetName="b" Property="BorderBrush" Value="#B9CCF2"/>
               <Setter Property="Foreground" Value="{StaticResource Accent}"/>
             </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- section tab: highlighted by the view-model's IsSelected, never by its own click state -->
+  <Style TargetType="Button" x:Key="TabButton">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="5"/>
+    <Setter Property="Height" Value="28"/>
+    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="b" Property="Background" Value="{StaticResource BgHover}"/>
+              <Setter Property="Foreground" Value="{StaticResource Text}"/>
+            </Trigger>
+            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+              <Setter TargetName="b" Property="Background" Value="{StaticResource AccentSoft}"/>
+              <Setter TargetName="b" Property="BorderBrush" Value="#B9CCF2"/>
+              <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+            </DataTrigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>

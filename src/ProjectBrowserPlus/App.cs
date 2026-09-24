@@ -42,14 +42,6 @@ namespace ProjectBrowserPlus
         internal static void EnsurePackScheme()
         {
             var _ = System.IO.Packaging.PackUriHelper.UriSchemePack;
-            if (System.Windows.Application.Current == null)
-            {
-                try { new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown }; } catch { }
-            }
-            if (System.Windows.Application.ResourceAssembly == null)
-            {
-                try { System.Windows.Application.ResourceAssembly = typeof(App).Assembly; } catch { }
-            }
         }
 
         /// <summary>

@@ -19,6 +19,12 @@ namespace ProjectBrowserPlus.UI
         public object ConvertBack(object v, Type t, object p, CultureInfo c) => throw new NotSupportedException();
     }
 
+    public class InverseBool : IValueConverter
+    {
+        public object Convert(object v, Type t, object p, CultureInfo c) => !(v is bool b && b);
+        public object ConvertBack(object v, Type t, object p, CultureInfo c) => !(v is bool b && b);
+    }
+
     public class NullToVis : IValueConverter
     {
         public bool Invert { get; set; }

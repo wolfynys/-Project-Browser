@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>disable</Nullable>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>ProjectBrowserPlus</RootNamespace>
+    <AssemblyName>ProjectBrowserPlus</AssemblyName>
+    <Version>1.0.0</Version>
+    <Product>Project Browser+ for Revit 2022</Product>
+    <Description>Project Browser on steroids: tabs, search, grouping, previews, favorites, batch tools.</Description>
+    <Copyright>ISC-licensed Lucide icons (c) Lucide Contributors</Copyright>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <DebugType>portable</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;NETSDK1206</NoWarn>
+    <!-- Revit-specific: nothing else needed on Windows, RevitAPI ships with Revit -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference assemblies of the Revit 2022 API (not copied to output; Revit provides the real ones) -->
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2022.1.80" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2022.1.80" />
+    <!-- lets the project build with the .NET SDK on any OS (no Visual Studio required) -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Runtime.Serialization" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Ribbon\*.png" />
+    <None Include="ProjectBrowserPlus.addin" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+<Window x:Class="ProjectBrowserPlus.UI.Dialogs.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:ProjectBrowserPlus.UI" Title="{ui:Tr dlg.settings}" Width="440" SizeToContent="Height" ResizeMode="NoResize">
+  <Window.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="pack://application:,,,/ProjectBrowserPlus;component/UI/Theme.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></Window.Resources>
+  <Window.Style><StaticResource ResourceKey="Dialog"/></Window.Style>
+  <StackPanel Margin="14">
+    <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr st.language}"/>
+    <ComboBox x:Name="Lang" Style="{StaticResource Combo}"><ComboBoxItem Content="Русский" Tag="ru"/><ComboBoxItem Content="English" Tag="en"/></ComboBox>
+    <TextBlock Text="{ui:Tr st.languageNote}" Style="{StaticResource Muted}" Margin="0,2,0,6"/>
+    <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr st.behaviour}"/>
+    <CheckBox x:Name="Follow" Style="{StaticResource Check}" Content="{ui:Tr st.follow}"/>
+    <CheckBox x:Name="SingleClick" Style="{StaticResource Check}" Content="{ui:Tr st.singleClick}"/>
+    <CheckBox x:Name="CloseOthers" Style="{StaticResource Check}" Content="{ui:Tr st.closeOthers}"/>
+    <CheckBox x:Name="Confirm" Style="{StaticResource Check}" Content="{ui:Tr st.confirmDelete}"/>
+    <CheckBox x:Name="RememberTab" Style="{StaticResource Check}" Content="{ui:Tr st.rememberTab}"/>
+    <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr st.display}"/>
+    <CheckBox x:Name="Badges" Style="{StaticResource Check}" Content="{ui:Tr st.badges}"/>
+    <CheckBox x:Name="Natural" Style="{StaticResource Check}" Content="{ui:Tr st.natural}"/>
+    <CheckBox x:Name="CompactRows" Style="{StaticResource Check}" Content="{ui:Tr st.compact}"/>
+    <CheckBox x:Name="SheetChildren" Style="{StaticResource Check}" Content="{ui:Tr st.sheetChildren}"/>
+    <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr st.families}"/>
+    <CheckBox x:Name="AutoPreview" Style="{StaticResource Check}" Content="{ui:Tr st.autoPreview}"/>
+    <CheckBox x:Name="CountInst" Style="{StaticResource Check}" Content="{ui:Tr st.countInstances}"/>
+    <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Margin="0,0,8,0"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr st.previewSize}"/><TextBox x:Name="PreviewSize" Style="{StaticResource Input}"/></StackPanel>
+      <StackPanel Grid.Column="1"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr st.maxRecent}"/><TextBox x:Name="MaxRecent" Style="{StaticResource Input}"/></StackPanel>
+    </Grid>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+      <Button Style="{StaticResource TextButton}" Content="{ui:Tr st.openFolder}" Click="Folder_Click" Margin="0,0,12,0"/>
+      <Button Style="{StaticResource PrimaryButton}" Content="{ui:Tr btn.ok}" Click="Ok_Click" Margin="0,0,6,0" IsDefault="True"/>
+      <Button Style="{StaticResource TextButton}" Content="{ui:Tr btn.cancel}" IsCancel="True"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

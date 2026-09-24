@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Project Browser+</Name>
+    <Assembly>ProjectBrowserPlus.dll</Assembly>
+    <AddInId>7E5A3C1D-4B2F-4E8A-9C6D-2F1B8A7D5E31</AddInId>
+    <FullClassName>ProjectBrowserPlus.App</FullClassName>
+    <VendorId>PBPL</VendorId>
+    <VendorDescription>Project Browser+ (open source add-in)</VendorDescription>
+  </AddIn>
+</RevitAddIns>

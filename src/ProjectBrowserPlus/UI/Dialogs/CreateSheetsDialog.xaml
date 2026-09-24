@@ -1,0 +1,23 @@
+<Window x:Class="ProjectBrowserPlus.UI.Dialogs.CreateSheetsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:ProjectBrowserPlus.UI" Title="{ui:Tr dlg.createSheets}" Width="420" SizeToContent="Height" ResizeMode="NoResize">
+  <Window.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="pack://application:,,,/ProjectBrowserPlus;component/UI/Theme.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></Window.Resources>
+  <Window.Style><StaticResource ResourceKey="Dialog"/></Window.Style>
+  <StackPanel Margin="12">
+    <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Margin="0,0,8,0"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr cs.number}"/><TextBox x:Name="Number" Style="{StaticResource Input}"/></StackPanel>
+      <StackPanel Grid.Column="1"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr cs.count}"/><TextBox x:Name="CountBox" Style="{StaticResource Input}" Text="1"/></StackPanel>
+    </Grid>
+    <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr cs.name}"/>
+    <TextBox x:Name="NameBox" Style="{StaticResource Input}" ToolTip="{ui:Tr cs.nameTip}"/>
+    <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr cs.titleblock}"/>
+    <ComboBox x:Name="TitleBlock" Style="{StaticResource Combo}" DisplayMemberPath="Value"/>
+    <CheckBox x:Name="PlaceholderBox" Style="{StaticResource Check}" Content="{ui:Tr cs.placeholder}" Margin="0,8,0,0"/>
+    <CheckBox x:Name="OpenBox" Style="{StaticResource Check}" Content="{ui:Tr cs.openFirst}" IsChecked="True"/>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+      <Button Style="{StaticResource PrimaryButton}" Content="{ui:Tr btn.create}" Click="Ok_Click" Margin="0,0,6,0" IsDefault="True"/>
+      <Button Style="{StaticResource TextButton}" Content="{ui:Tr btn.cancel}" IsCancel="True"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

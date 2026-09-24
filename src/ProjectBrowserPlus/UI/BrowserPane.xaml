@@ -1,0 +1,236 @@
+<UserControl x:Class="ProjectBrowserPlus.UI.BrowserPane"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:ProjectBrowserPlus.UI"
+             FontFamily="Segoe UI" FontSize="12" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
+             Background="{DynamicResource Bg}" MinWidth="220">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/ProjectBrowserPlus;component/UI/Theme.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- one row of the flat tree -->
+      <DataTemplate x:Key="RowTemplate">
+        <Grid Height="{Binding DataContext.RowHeight, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="{Binding Level, Converter={StaticResource Indent}}" Loaded="Row_Loaded" DataContextChanged="Row_DataContextChanged" Background="Transparent">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="18"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <!-- expander -->
+          <Button Grid.Column="0" Style="{StaticResource IconButton}" Width="18" Height="18" Padding="1" Visibility="{Binding HasChildren, Converter={StaticResource BoolToVis}}"
+                  Command="{Binding DataContext.ToggleExpandCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Focusable="False">
+            <ui:Icon Kind="{Binding IsExpanded, Converter={StaticResource ExpanderIcon}}" Size="12" Foreground="{StaticResource TextMuted}"/>
+          </Button>
+          <!-- icon / thumbnail / colour tag -->
+          <Grid Grid.Column="1" Margin="0,0,6,0" VerticalAlignment="Center">
+            <ui:Icon Kind="{Binding IconKey}" Size="15" Foreground="{StaticResource TextMuted}" Visibility="{Binding HasPreview, Converter={StaticResource BoolToVisInv}}"/>
+            <Border Width="22" Height="22" BorderBrush="{StaticResource Border}" BorderThickness="1" Background="White" CornerRadius="2" Visibility="{Binding HasPreview, Converter={StaticResource BoolToVis}}">
+              <Image Source="{Binding Preview}" Stretch="Uniform" Margin="1"/>
+            </Border>
+            <Ellipse Width="7" Height="7" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,-2" Fill="{Binding TagColor, Converter={StaticResource ColorBrush}}" Visibility="{Binding TagColor, Converter={StaticResource NullToVis}}"/>
+          </Grid>
+          <!-- name (+ inline editor) -->
+          <Grid Grid.Column="2" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisInv}}">
+              <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontWeight="{Binding Kind, Converter={StaticResource KindToWeight}}">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="{StaticResource Text}"/>
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsCurrent}" Value="True"><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{StaticResource Accent}"/></DataTrigger>
+                      <DataTrigger Binding="{Binding HasPending}" Value="True"><Setter Property="Foreground" Value="{StaticResource Draft}"/><Setter Property="FontStyle" Value="Italic"/></DataTrigger>
+                      <DataTrigger Binding="{Binding IsUnused}" Value="True"><Setter Property="Foreground" Value="{StaticResource TextMuted}"/></DataTrigger>
+                      <DataTrigger Binding="{Binding IsOpen}" Value="True"><Setter Property="TextDecorations" Value="Underline"/></DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+              <TextBlock Text="{Binding Count, Converter={StaticResource CountToText}}" Foreground="{StaticResource TextBadge}" Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11"/>
+              <TextBlock Text="{Binding Badges}" Foreground="{StaticResource TextBadge}" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="11" TextTrimming="CharacterEllipsis"
+                         Visibility="{Binding DataContext.ShowBadges, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+              <ui:Icon Kind="pencil" Size="11" Margin="6,0,0,0" Foreground="{StaticResource Draft}" Visibility="{Binding HasPending, Converter={StaticResource BoolToVis}}" VerticalAlignment="Center"/>
+              <ui:Icon Kind="text" Size="11" Margin="6,0,0,0" Foreground="{StaticResource TextMuted}" Visibility="{Binding Note, Converter={StaticResource NullToVis}}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBox x:Name="Editor" Style="{StaticResource Input}" MinHeight="20" Padding="3,0" Text="{Binding DisplayText, Mode=OneWay}" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"
+                     Loaded="Editor_Loaded" KeyDown="Editor_KeyDown" LostKeyboardFocus="Editor_LostFocus"/>
+          </Grid>
+          <!-- favourite star -->
+          <Button Grid.Column="3" Width="20" Height="20" Padding="2" Margin="4,0,2,0" Focusable="False"
+                  Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+            <Button.Style>
+              <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                <Setter Property="Visibility" Value="Hidden"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFavorite}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                  <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
+                  <DataTrigger Binding="{Binding IsFolder}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Button.Style>
+            <ui:Icon Kind="star" Size="13">
+              <ui:Icon.Style>
+                <Style TargetType="ui:Icon">
+                  <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                  <Style.Triggers><DataTrigger Binding="{Binding IsFavorite}" Value="True"><Setter Property="Foreground" Value="{StaticResource Star}"/></DataTrigger></Style.Triggers>
+                </Style>
+              </ui:Icon.Style>
+            </ui:Icon>
+          </Button>
+        </Grid>
+      </DataTemplate>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>  <!-- header -->
+      <RowDefinition Height="Auto"/>  <!-- tabs -->
+      <RowDefinition Height="Auto"/>  <!-- search -->
+      <RowDefinition Height="Auto"/>  <!-- group / tools -->
+      <RowDefinition Height="*"/>     <!-- list -->
+      <RowDefinition Height="Auto"/>  <!-- preview -->
+      <RowDefinition Height="Auto"/>  <!-- draft -->
+      <RowDefinition Height="Auto"/>  <!-- status -->
+    </Grid.RowDefinitions>
+
+    <!-- header -->
+    <Border Grid.Row="0" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="8,6">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.goCurrent}" Command="{Binding GoToCurrentCommand}"><ui:Icon Kind="crosshair" Size="15"/></Button>
+          <ToggleButton Style="{StaticResource IconToggle}" ToolTip="{ui:Tr tip.preview}" IsChecked="{Binding ShowPreview}" Width="26" Height="26" Padding="4"><ui:Icon Kind="image" Size="15"/></ToggleButton>
+          <Button Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.refresh}" Command="{Binding RefreshCommand}"><ui:Icon Kind="refresh-cw" Size="15"/></Button>
+          <Button Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.settings}" Command="{Binding SettingsCommand}"><ui:Icon Kind="settings" Size="15"/></Button>
+        </StackPanel>
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+          <TextBlock Text="{ui:Tr app.title}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource Text}"/>
+          <TextBlock Text="{Binding ProjectName}" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- tabs -->
+    <Border Grid.Row="1" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="6,4">
+      <ItemsControl ItemsSource="{Binding Tabs}">
+        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <ToggleButton Style="{StaticResource IconToggle}" IsChecked="{Binding IsSelected, Mode=OneWay}" ToolTip="{Binding Title}" Click="Tab_Click" Margin="1,0" Width="30">
+              <ui:Icon Kind="{Binding Icon}" Size="16"/>
+            </ToggleButton>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <!-- search -->
+    <Grid Grid.Row="2" Margin="8,6,8,2">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Grid>
+        <TextBox x:Name="SearchBox" Style="{StaticResource Input}" Padding="24,3,24,3" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" KeyDown="Search_KeyDown"/>
+        <ui:Icon Kind="search" Size="14" HorizontalAlignment="Left" Margin="7,0,0,0" Foreground="{StaticResource TextMuted}"/>
+        <TextBlock Text="{Binding SearchHint}" Foreground="{StaticResource TextBadge}" Margin="26,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding HasSearch, Converter={StaticResource BoolToVisInv}}"/>
+        <Button Style="{StaticResource IconButton}" Width="20" Height="20" Padding="2" HorizontalAlignment="Right" Margin="0,0,3,0" Command="{Binding ClearSearchCommand}" Visibility="{Binding HasSearch, Converter={StaticResource BoolToVis}}"><ui:Icon Kind="x" Size="12"/></Button>
+      </Grid>
+      <ToggleButton x:Name="FilterButton" Grid.Column="1" Style="{StaticResource IconToggle}" Margin="4,0,0,0" ToolTip="{ui:Tr tip.filters}" Visibility="{Binding HasFilters, Converter={StaticResource BoolToVis}}" Width="30" Height="26">
+        <Grid>
+          <ui:Icon Kind="funnel" Size="15"/>
+          <Border Background="{StaticResource Accent}" CornerRadius="6" MinWidth="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,-8,0">
+            <Border.Style>
+              <Style TargetType="Border"><Setter Property="Visibility" Value="Visible"/>
+                <Style.Triggers><DataTrigger Binding="{Binding ActiveFilterCount}" Value="0"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
+              </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ActiveFilterCount}" Foreground="White" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0"/>
+          </Border>
+        </Grid>
+      </ToggleButton>
+      <Popup PlacementTarget="{Binding ElementName=FilterButton}" Placement="Bottom" IsOpen="{Binding IsChecked, ElementName=FilterButton, Mode=TwoWay}" StaysOpen="False" AllowsTransparency="True">
+        <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,2,0,0">
+          <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.2"/></Border.Effect>
+          <ItemsControl ItemsSource="{Binding Filters}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <CheckBox Style="{StaticResource Check}" IsChecked="{Binding IsActive, Mode=OneWay}" Command="{Binding DataContext.ToggleFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                  <StackPanel Orientation="Horizontal"><ui:Icon Kind="{Binding Icon}" Size="13" Margin="0,0,6,0" Foreground="{StaticResource TextMuted}"/><TextBlock Text="{Binding Title}"/></StackPanel>
+                </CheckBox>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
+      </Popup>
+    </Grid>
+
+    <!-- grouping + tools -->
+    <Grid Grid.Row="3" Margin="8,2,8,4">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <ComboBox Style="{StaticResource Combo}" ItemsSource="{Binding GroupOptions}" SelectedItem="{Binding SelectedGroup}" Visibility="{Binding SupportsGrouping, Converter={StaticResource BoolToVis}}" ToolTip="{ui:Tr tip.groupBy}"/>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="4,0,0,0">
+        <Button x:Name="SortButton" Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.sort}" Click="Sort_Click"><ui:Icon Kind="{Binding SelectedSort.Icon}" Size="15"/></Button>
+        <Button Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.expandAll}" Command="{Binding ExpandAllCommand}"><ui:Icon Kind="chevrons-up-down" Size="15"/></Button>
+        <Button Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.collapseAll}" Command="{Binding CollapseAllCommand}"><ui:Icon Kind="chevrons-down-up" Size="15"/></Button>
+        <Button x:Name="CreateButton" Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.create}" Click="Create_Click"><ui:Icon Kind="plus" Size="15"/></Button>
+        <Button x:Name="ToolsButton" Style="{StaticResource IconButton}" ToolTip="{ui:Tr tip.tools}" Click="Tools_Click"><ui:Icon Kind="wand" Size="15"/></Button>
+      </StackPanel>
+    </Grid>
+
+    <!-- tree -->
+    <Grid Grid.Row="4">
+      <ListBox x:Name="List" ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource RowTemplate}" ItemContainerStyle="{StaticResource RowContainer}"
+               SelectionMode="Extended" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Border}" Background="{StaticResource Bg}"
+               VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Standard" VirtualizingPanel.ScrollUnit="Pixel"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch"
+               MouseDoubleClick="List_MouseDoubleClick" PreviewKeyDown="List_PreviewKeyDown" SelectionChanged="List_SelectionChanged"
+               ContextMenuOpening="List_ContextMenuOpening" PreviewMouseLeftButtonUp="List_PreviewMouseLeftButtonUp">
+        <ListBox.ContextMenu><ContextMenu Visibility="Collapsed"/></ListBox.ContextMenu>
+      </ListBox>
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
+        <ui:Icon Kind="folder-open" Size="36" Foreground="{StaticResource Border}" HorizontalAlignment="Center"/>
+        <TextBlock Text="{ui:Tr empty.text}" Style="{StaticResource Muted}" Margin="0,8,0,0" TextAlignment="Center"/>
+      </StackPanel>
+      <Border Background="#88FFFFFF" Visibility="{Binding Busy, Converter={StaticResource BoolToVis}}">
+        <TextBlock Text="{ui:Tr status.loading}" Style="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+    </Grid>
+
+    <!-- preview -->
+    <Border Grid.Row="5" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Background="{StaticResource BgPanel}" Visibility="{Binding ShowPreview, Converter={StaticResource BoolToVis}}" Padding="8,6">
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Border Width="140" Height="110" Background="White" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="3" Margin="0,0,8,0">
+          <Grid>
+            <Image Source="{Binding PreviewImage}" Stretch="Uniform" Margin="3" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <Button Style="{StaticResource TextButton}" Content="{ui:Tr preview.generate}" Command="{Binding GeneratePreviewCommand}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Padding="8,2"
+                    Visibility="{Binding HasPreviewImage, Converter={StaticResource BoolToVisInv}}"/>
+            <TextBlock Text="…" HorizontalAlignment="Center" VerticalAlignment="Bottom" Style="{StaticResource Muted}" Visibility="{Binding PreviewBusy, Converter={StaticResource BoolToVis}}"/>
+          </Grid>
+        </Border>
+        <TextBlock Grid.Column="1" Text="{Binding PreviewInfo}" TextWrapping="Wrap" Style="{StaticResource Muted}" Foreground="{StaticResource Text}" VerticalAlignment="Top" MaxHeight="110" TextTrimming="CharacterEllipsis"/>
+        <Button Grid.Column="1" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="22" Height="22" ToolTip="{ui:Tr preview.regenerate}" Command="{Binding GeneratePreviewCommand}" Visibility="{Binding HasPreviewImage, Converter={StaticResource BoolToVis}}"><ui:Icon Kind="refresh-cw" Size="12"/></Button>
+      </Grid>
+    </Border>
+
+    <!-- draft bar -->
+    <Border Grid.Row="6" Background="{StaticResource DraftSoft}" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="8,6" Visibility="{Binding HasPending, Converter={StaticResource BoolToVis}}">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button Style="{StaticResource PrimaryButton}" Content="{ui:Tr draft.apply}" Command="{Binding ApplyDraftCommand}" Margin="0,0,4,0"/>
+          <Button Style="{StaticResource TextButton}" Content="{ui:Tr draft.discard}" Command="{Binding DiscardDraftCommand}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <ui:Icon Kind="pencil" Size="14" Foreground="{StaticResource Draft}" Margin="0,0,6,0"/>
+          <TextBlock Text="{Binding PendingText}" Foreground="{StaticResource Draft}" VerticalAlignment="Center" ToolTip="{ui:Tr draft.tip}"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- status -->
+    <Border Grid.Row="7" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="8,3">
+      <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis"/>
+    </Border>
+  </Grid>
+</UserControl>

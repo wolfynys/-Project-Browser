@@ -1,0 +1,63 @@
+<Window x:Class="ProjectBrowserPlus.UI.Dialogs.RenameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:ProjectBrowserPlus.UI" Title="{ui:Tr dlg.rename}" Width="640" Height="560" MinWidth="520" MinHeight="420">
+  <Window.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="pack://application:,,,/ProjectBrowserPlus;component/UI/Theme.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></Window.Resources>
+  <Window.Style><StaticResource ResourceKey="Dialog"/></Window.Style>
+  <Grid Margin="12">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid Grid.Row="0">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0">
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.find}"/>
+        <TextBox x:Name="Find" Style="{StaticResource Input}" TextChanged="Changed"/>
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.replace}"/>
+        <TextBox x:Name="Replace" Style="{StaticResource Input}" TextChanged="Changed"/>
+        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+          <CheckBox x:Name="Regex" Style="{StaticResource Check}" Content="{ui:Tr rn.regex}" Click="Changed" Margin="0,0,12,0"/>
+          <CheckBox x:Name="CaseSens" Style="{StaticResource Check}" Content="{ui:Tr rn.case}" Click="Changed"/>
+        </StackPanel>
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.prefix}"/>
+        <TextBox x:Name="Prefix" Style="{StaticResource Input}" TextChanged="Changed"/>
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.suffix}"/>
+        <TextBox x:Name="Suffix" Style="{StaticResource Input}" TextChanged="Changed"/>
+      </StackPanel>
+      <StackPanel Grid.Column="2">
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.numbering}"/>
+        <CheckBox x:Name="Numbering" Style="{StaticResource Check}" Content="{ui:Tr rn.addNumber}" Click="Changed"/>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,6,0"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.start}"/><TextBox x:Name="Start" Style="{StaticResource Input}" Text="1" TextChanged="Changed"/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="0,0,6,0"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.step}"/><TextBox x:Name="Step" Style="{StaticResource Input}" Text="1" TextChanged="Changed"/></StackPanel>
+          <StackPanel Grid.Column="2"><Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.digits}"/><TextBox x:Name="Digits" Style="{StaticResource Input}" Text="2" TextChanged="Changed"/></StackPanel>
+        </Grid>
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.numberPattern}"/>
+        <TextBox x:Name="Pattern" Style="{StaticResource Input}" Text="{}{name} {n}" TextChanged="Changed" ToolTip="{ui:Tr rn.patternTip}"/>
+        <Label Style="{StaticResource FieldLabel}" Content="{ui:Tr rn.caseMode}"/>
+        <ComboBox x:Name="CaseMode" Style="{StaticResource Combo}" SelectionChanged="Changed">
+          <ComboBoxItem Content="{ui:Tr rn.caseKeep}"/><ComboBoxItem Content="{ui:Tr rn.caseUpper}"/><ComboBoxItem Content="{ui:Tr rn.caseLower}"/><ComboBoxItem Content="{ui:Tr rn.caseTitle}"/>
+        </ComboBox>
+        <CheckBox x:Name="Trim" Style="{StaticResource Check}" Content="{ui:Tr rn.trim}" IsChecked="True" Click="Changed" Margin="0,8,0,0"/>
+        <CheckBox x:Name="SheetNumbers" Style="{StaticResource Check}" Content="{ui:Tr rn.sheetNumbers}" Click="Changed" Visibility="Collapsed"/>
+      </StackPanel>
+    </Grid>
+    <DataGrid x:Name="Grid" Grid.Row="1" Style="{StaticResource Grid}" Margin="0,10,0,0" ItemsSource="{Binding}">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="{ui:Tr rn.old}" Binding="{Binding Old}" Width="*"/>
+        <DataGridTextColumn Header="{ui:Tr rn.new}" Binding="{Binding New}" Width="*"/>
+      </DataGrid.Columns>
+      <DataGrid.RowStyle>
+        <Style TargetType="DataGridRow">
+          <Style.Triggers><DataTrigger Binding="{Binding Changed}" Value="True"><Setter Property="Foreground" Value="{StaticResource Draft}"/></DataTrigger></Style.Triggers>
+        </Style>
+      </DataGrid.RowStyle>
+    </DataGrid>
+    <DockPanel Grid.Row="2" Margin="0,10,0,0">
+      <TextBlock x:Name="Summary" Style="{StaticResource Muted}" VerticalAlignment="Center"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Style="{StaticResource TextButton}" Content="{ui:Tr btn.toDraft}" Click="Draft_Click" Margin="0,0,6,0" ToolTip="{ui:Tr draft.tip}"/>
+        <Button Style="{StaticResource PrimaryButton}" Content="{ui:Tr btn.apply}" Click="Apply_Click" Margin="0,0,6,0"/>
+        <Button Style="{StaticResource TextButton}" Content="{ui:Tr btn.cancel}" IsCancel="True"/>
+      </StackPanel>
+    </DockPanel>
+  </Grid>
+</Window>

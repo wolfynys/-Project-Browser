@@ -228,7 +228,6 @@
     <Setter Property="Background" Value="{StaticResource BgPanel}"/>
     <Setter Property="FontFamily" Value="Segoe UI"/>
     <Setter Property="FontSize" Value="12"/>
-    <Setter Property="WindowStartupLocation" Value="CenterOwner"/>
     <Setter Property="ShowInTaskbar" Value="False"/>
     <Setter Property="ResizeMode" Value="CanResize"/>
     <Setter Property="UseLayoutRounding" Value="True"/>
@@ -251,7 +250,6 @@
 
   <!-- row container: selection colours -->
   <Style TargetType="ListBoxItem" x:Key="RowContainer">
-    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
     <Setter Property="Padding" Value="0"/>
     <Setter Property="Margin" Value="0"/>
     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

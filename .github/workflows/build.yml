@@ -9,6 +9,12 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - run: dotnet build src/ProjectBrowserPlus/ProjectBrowserPlus.csproj -c Release
+      - name: Check XAML
+        shell: bash
+        run: |
+          dotnet build tools/XamlCheck -c Release
+          REF="$HOME/.nuget/packages/microsoft.netframework.referenceassemblies.net48/1.0.3/build/.NETFramework/v4.8"
+          dotnet tools/XamlCheck/bin/Release/net8.0/XamlCheck.dll "$REF" src/ProjectBrowserPlus/bin/Release/net48/ProjectBrowserPlus.dll $(find src -name "*.xaml" ! -name Icons.xaml)
       - uses: actions/upload-artifact@v4
         with:
           name: ProjectBrowserPlus-Revit2022

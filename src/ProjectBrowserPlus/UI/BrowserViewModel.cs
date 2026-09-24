@@ -74,6 +74,18 @@ namespace ProjectBrowserPlus.UI
         };
 
         public ObservableCollection<BrowserItem> Rows { get => _rows; private set { _rows = value; Raise(); } }
+
+        /// <summary>Asks the view to make the ListBox selection match BrowserItem.IsSelected.</summary>
+        public event Action SelectionSyncRequested;
+
+        /// <summary>Select exactly these items (everything else, visible or not, is deselected).</summary>
+        public void SelectOnly(IEnumerable<BrowserItem> items)
+        {
+            var set = new HashSet<BrowserItem>(items);
+            foreach (var r in _roots) foreach (var n in Enumerable.Repeat(r, 1).Concat(r.Descendants())) n.IsSelected = set.Contains(n);
+            SelectionSyncRequested?.Invoke();
+            RebuildStatusOnly();
+        }
         public string Search { get => _search; set { if (_search != value) { _search = value ?? ""; Raise(); Raise(nameof(HasSearch)); _searchTimer.Stop(); _searchTimer.Start(); } } }
         public bool HasSearch => !string.IsNullOrEmpty(_search);
         public string Status { get => _status; set { _status = value; Raise(); } }
@@ -363,7 +375,11 @@ namespace ProjectBrowserPlus.UI
         {
             var list = new List<BrowserItem>(Math.Max(64, _rows.Count));
             foreach (var r in _roots) AddVisible(r, list);
+            // replacing ItemsSource makes the ListBox report every old row as deselected; keep what is still visible
+            var keep = new HashSet<BrowserItem>(_rows.Where(i => i.IsSelected));
             ApplyRows(list);
+            foreach (var i in list) if (keep.Contains(i)) i.IsSelected = true;
+            SelectionSyncRequested?.Invoke();
             var leaves = list.Count(i => !i.IsFolder);
             var total = _roots.Sum(r => r.IsFolder ? r.Count : 1);
             var sel = list.Count(i => i.IsSelected);
@@ -441,7 +457,7 @@ namespace ProjectBrowserPlus.UI
             for (var p = it.Parent; p != null; p = p.Parent) p.IsExpanded = true;
             it.IsMatch = true;
             RebuildRows();
-            if (select) { foreach (var r in _rows) r.IsSelected = r == it; }
+            if (select) SelectOnly(new[] { it });
             ScrollIntoViewRequested?.Invoke(it);
         }
 

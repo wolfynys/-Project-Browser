@@ -29,6 +29,7 @@ namespace ProjectBrowserPlus.UI
             InitializeComponent();
             ViewModel = new BrowserViewModel();
             DataContext = ViewModel;
+            ViewModel.SelectionSyncRequested += SyncSelection;
             ViewModel.ScrollIntoViewRequested += it => Dispatcher.BeginInvoke(new Action(() => { try { List.ScrollIntoView(it); } catch { } }), System.Windows.Threading.DispatcherPriority.Background);
             Loaded += (s, e) => { if (_firstLoad) { _firstLoad = false; ViewModel.RequestRefresh(true); } };
             IsVisibleChanged += (s, e) => { if ((bool)e.NewValue && !_firstLoad) ViewModel.RequestRefresh(false); };
@@ -94,7 +95,16 @@ namespace ProjectBrowserPlus.UI
         {
             var m = new MenuItem { Header = header, IsEnabled = enabled, InputGestureText = gesture };
             if (icon != null) m.Icon = new Icon { Kind = icon, Size = 14, Foreground = (Brush)new BrushConverter().ConvertFromString("#6B7280") };
-            m.Click += (s, e) => { try { action(); } catch (Exception ex) { Log.Error("menu " + header, ex); } };
+            m.Click += (s, e) =>
+            {
+                try { action(); }
+                catch (Exception ex)
+                {
+                    Log.Error("menu " + header, ex);
+                    var inner = ex; while (inner.InnerException != null) inner = inner.InnerException;
+                    MessageBox.Show(header + "\n\n" + inner.Message + "\n\n" + System.IO.Path.Combine(Log.Dir, "log.txt"), "Project Browser+", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            };
             cm.Items.Add(m);
             return m;
         }
@@ -139,7 +149,31 @@ namespace ProjectBrowserPlus.UI
             ViewModel.Activate(it);
         }
 
-        private void List_SelectionChanged(object sender, SelectionChangedEventArgs e) => ViewModel.UpdateSelectionStatus();
+        private bool _syncing;
+
+        private void List_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_syncing) return;
+            foreach (var o in e.RemovedItems) if (o is BrowserItem r) r.IsSelected = false;
+            foreach (var o in e.AddedItems) if (o is BrowserItem a) a.IsSelected = true;
+            ViewModel.UpdateSelectionStatus();
+        }
+
+        /// <summary>Push BrowserItem.IsSelected into the ListBox (after rebuilds or programmatic selection).</summary>
+        private void SyncSelection()
+        {
+            _syncing = true;
+            try
+            {
+                var want = ViewModel.Rows.Where(r => r.IsSelected).ToList();
+                var have = List.SelectedItems.Cast<BrowserItem>().ToList();
+                if (want.Count == have.Count && !want.Except(have).Any()) return;
+                List.SelectedItems.Clear();
+                foreach (var r in want) List.SelectedItems.Add(r);
+            }
+            catch (Exception ex) { Log.Warn("sync selection: " + ex.Message); }
+            finally { _syncing = false; }
+        }
 
         private void List_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -181,7 +215,7 @@ namespace ProjectBrowserPlus.UI
                     if (Keyboard.Modifiers == ModifierKeys.Control) { SafeClipboard(string.Join("\n", sel.Select(i => i.DisplayText))); e.Handled = true; }
                     break;
                 case Key.A:
-                    if (Keyboard.Modifiers == ModifierKeys.Control) { foreach (var r in ViewModel.Rows) r.IsSelected = !r.IsFolder; e.Handled = true; }
+                    if (Keyboard.Modifiers == ModifierKeys.Control) { ViewModel.SelectOnly(ViewModel.Rows.Where(r => !r.IsFolder)); e.Handled = true; }
                     break;
                 case Key.Escape:
                     if (ViewModel.HasSearch) { ViewModel.Search = ""; e.Handled = true; }
@@ -275,7 +309,7 @@ namespace ProjectBrowserPlus.UI
         private void List_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             var clicked = ItemAt(e.OriginalSource as DependencyObject);
-            if (clicked != null && !clicked.IsSelected) { foreach (var r in ViewModel.Rows) r.IsSelected = r == clicked; }
+            if (clicked != null && !clicked.IsSelected) ViewModel.SelectOnly(new[] { clicked });
             e.Handled = true;
             var cm = new ContextMenu();
             BuildContextMenu(cm, clicked);
@@ -304,7 +338,7 @@ namespace ProjectBrowserPlus.UI
             {
                 Add(cm, focus.IsExpanded ? L.T("menu.collapse") : L.T("menu.expand"), focus.IsExpanded ? "chevrons-down-up" : "chevrons-up-down", () => { focus.IsExpanded = !focus.IsExpanded; ViewModel.RebuildRows(); });
                 Add(cm, L.T("menu.expandBranch"), "folder-open", () => { foreach (var d in focus.Descendants()) if (d.HasChildren) d.IsExpanded = true; focus.IsExpanded = true; ViewModel.RebuildRows(); });
-                Add(cm, L.T("menu.selectChildren"), "list-checks", () => { focus.IsExpanded = true; ViewModel.RebuildRows(); foreach (var r in ViewModel.Rows) r.IsSelected = r != focus && IsUnder(r, focus) && !r.IsFolder; });
+                Add(cm, L.T("menu.selectChildren"), "list-checks", () => { focus.IsExpanded = true; ViewModel.RebuildRows(); ViewModel.SelectOnly(ViewModel.Rows.Where(r => r != focus && IsUnder(r, focus) && !r.IsFolder)); });
                 cm.Items.Add(new Separator());
             }
 
@@ -563,19 +597,17 @@ namespace ProjectBrowserPlus.UI
 
         private void SelectUnused()
         {
-            foreach (var r in ViewModel.Rows) r.IsSelected = false;
             ViewModel.SetExpanded(false);
             var unused = ViewModel.Rows.Where(r => r.Kind == ItemKind.Family && r.IsUnused).ToList();
-            foreach (var u in unused) u.IsSelected = true;
+            ViewModel.SelectOnly(unused);
             ViewModel.Report(string.Format(L.T("msg.selectedUnused"), unused.Count));
         }
 
         private void SelectNotOnSheet()
         {
-            foreach (var r in ViewModel.Rows) r.IsSelected = false;
             ViewModel.SetExpanded(true);
             var list = ViewModel.Rows.Where(r => r.IsViewLike && r.Kind != ItemKind.Sheet && !r.IsOnSheet && !r.IsFolder && r.Parent?.Kind != ItemKind.Sheet).ToList();
-            foreach (var u in list) u.IsSelected = true;
+            ViewModel.SelectOnly(list);
             ViewModel.Report(string.Format(L.T("msg.selected"), list.Count));
         }
 
